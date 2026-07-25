@@ -8,16 +8,10 @@ export class BuyerModel implements IBuyerModel {
 
     constructor() {}
 
-    // ❌ Удаляем геттеры:
-    // get payment(): TPayment | '' { return this._payment; }
-    // get address(): string { return this._address; }
-    // get email(): string { return this._email; }
-    // get phone(): string { return this._phone; }
-
-    // ✅ Единственный метод получения данных
+    // метод получения данных
     getData(): IBuyer {
         return {
-            payment: this._payment,  // ✅ Без as TPayment
+            payment: this._payment,
             address: this._address,
             email: this._email,
             phone: this._phone

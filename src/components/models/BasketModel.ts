@@ -3,15 +3,13 @@ import { IProduct, IBasketModel } from '../../types';
 export class BasketModel implements IBasketModel {
     private _items: IProduct[] = [];
 
-    // ✅ Конструктор без events
     constructor() {}
 
     /**
      * Добавить товар в корзину
      */
     addItem(item: IProduct): void {
-        // ✅ Убрана проверка if (!item) — тип гарантирует наличие
-        if (item.price === null) return; // товар без цены нельзя добавить
+        if (item.price === null) return; 
         if (!this.contains(item.id)) {
             this._items.push(item);
         }
@@ -58,9 +56,4 @@ export class BasketModel implements IBasketModel {
     contains(id: string): boolean {
         return this._items.some(item => item.id === id);
     }
-
-    // ❌ Удалены методы:
-    // - canCheckout() — не указан в задании
-    // - getItemIds() — не указан в задании
-    // - геттер get items() — дублирует getItems()
 }

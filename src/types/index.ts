@@ -25,7 +25,7 @@ export interface IProduct {
 }
 
 export interface IBuyer {
-    payment: TPayment | '';  // ✅ Добавлено | ''
+    payment: TPayment | ''; 
     address: string;
     email: string;
     phone: string;
