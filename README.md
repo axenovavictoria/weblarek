@@ -1,3 +1,5 @@
+https://github.com/axenovavictoria/weblarek.git
+
 # Проектная работа "Веб-ларек"
 
 Стек: HTML, SCSS, TS, Vite
@@ -98,3 +100,84 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+## Данные
+
+### Товар (IProduct)
+- `id: string` — уникальный идентификатор
+- `title: string` — название товара
+- `image: string` — ссылка на изображение
+- `category: string` — категория товара
+- `price: number | null` — цена (null — товар недоступен)
+- `description: string` — описание товара
+
+### Покупатель (IBuyer)
+- `payment: 'card' | 'cash'` — способ оплаты
+- `address: string` — адрес доставки
+- `email: string` — email покупателя
+- `phone: string` — телефон покупателя
+
+## Модели данных
+
+### ProductModel — Модель каталога
+
+**Назначение:** хранение и управление списком товаров
+
+**Поля:**
+- `_items: IProduct[]` — массив всех товаров
+- `_selectedItem: IProduct | null` — выбранный товар
+
+**Методы:**
+- `setItems(items: IProduct[]): void` — сохраняет массив товаров
+- `getItems(): IProduct[]` — возвращает все товары
+- `getItemById(id: string): IProduct | undefined` — возвращает товар по id
+- `setSelectedItem(item: IProduct): void` — сохраняет выбранный товар
+- `getSelectedItem(): IProduct | null` — возвращает выбранный товар
+
+### BasketModel — Модель корзины
+
+**Назначение:** хранение и управление товарами в корзине
+
+**Поля:**
+- `_items: IProduct[]` — массив товаров в корзине
+
+**Методы:**
+- `addItem(item: IProduct): void` — добавляет товар в корзину
+- `removeItem(id: string): void` — удаляет товар по id
+- `clear(): void` — очищает корзину
+- `getItems(): IProduct[]` — возвращает все товары
+- `getTotal(): number` — возвращает общую стоимость
+- `getCount(): number` — возвращает количество товаров
+- `contains(id: string): boolean` — проверяет наличие товара
+- `canCheckout(): boolean` — проверяет возможность оформления
+- `getItemIds(): string[]` — возвращает ID всех товаров
+
+### BuyerModel — Модель покупателя
+
+**Назначение:** хранение и валидация данных покупателя
+
+**Поля:**
+- `_payment: 'card' | 'cash' | ''` — способ оплаты
+- `_address: string` — адрес
+- `_email: string` — email
+- `_phone: string` — телефон
+
+**Методы:**
+- `setField<K>(field: K, value: IBuyer[K]): void` — устанавливает значение поля
+- `getData(): IBuyer` — возвращает все данные
+- `clear(): void` — очищает все данные
+- `validate(): Partial<Record<keyof IBuyer, string>>` — проверяет данные
+- `isValid(): boolean` — проверяет, все ли данные валидны
+- `validateField<K>(field: K): string | null` — проверяет конкретное поле
+
+## Слой коммуникации
+
+### WebLarekApi
+
+**Назначение:** взаимодействие с сервером WebLarek
+
+**Конструктор:**
+- `api: IApi` — экземпляр базового класса Api
+
+**Методы:**
+- `getProducts(): Promise<IApiProductResponse>` — получает список товаров
+- `postOrder(orderData: IOrderData): Promise<IOrderResponse>` — отправляет заказ
