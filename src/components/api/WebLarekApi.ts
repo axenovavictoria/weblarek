@@ -1,7 +1,5 @@
-import { Api } from '../base/Api';
 import { 
-    IApi, 
-    IWebLarekApi, 
+    IApi,     IWebLarekApi, 
     IApiProductResponse, 
     IOrderData, 
     IOrderResponse 
