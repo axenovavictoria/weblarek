@@ -5,13 +5,16 @@ export interface IApi {
     post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
 
-export { IEvents } from '../components/base/Events';
+import { categoryMap } from '../utils/constants';
 
-// Типы
-export type TCategory = 'софт-скил' | 'хард-скил' | 'другое' | 'дополнительное' | 'кнопка';
+// ============ ТИПЫ ============
+
+export type TCategory = keyof typeof categoryMap;
 export type TPayment = 'card' | 'cash';
+export type TValidationErrors = Partial<Record<keyof IBuyer, string>>;
 
-// Интерфейс товара
+// ============ ИНТЕРФЕЙСЫ ============
+
 export interface IProduct {
     id: string;
     title: string;
@@ -21,18 +24,14 @@ export interface IProduct {
     description: string;
 }
 
-// Интерфейс покупателя
 export interface IBuyer {
-    payment: TPayment;
+    payment: TPayment | '';  // ✅ Добавлено | ''
     address: string;
     email: string;
     phone: string;
 }
 
-// Интерфейсы моделей
 export interface IProductModel {
-    items: IProduct[];
-    selectedItem: IProduct | null;
     setItems(items: IProduct[]): void;
     getItems(): IProduct[];
     getItemById(id: string): IProduct | undefined;
@@ -41,7 +40,6 @@ export interface IProductModel {
 }
 
 export interface IBasketModel {
-    items: IProduct[];
     addItem(item: IProduct): void;
     removeItem(id: string): void;
     clear(): void;
@@ -49,24 +47,15 @@ export interface IBasketModel {
     getTotal(): number;
     getCount(): number;
     contains(id: string): boolean;
-    canCheckout(): boolean;
-    getItemIds(): string[];
 }
 
 export interface IBuyerModel {
-    payment: TPayment | '';
-    address: string;
-    email: string;
-    phone: string;
     setField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void;
     getData(): IBuyer;
     clear(): void;
-    validate(fields?: Array<keyof IBuyer>): Partial<Record<keyof IBuyer, string>>;
-    isValid(): boolean;
-    validateField<K extends keyof IBuyer>(field: K): string | null;
+    validate(fields?: Array<keyof IBuyer>): TValidationErrors;
 }
 
-// Интерфейсы для API
 export interface IApiProductResponse {
     items: IProduct[];
     total: number;

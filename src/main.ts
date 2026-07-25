@@ -1,30 +1,26 @@
 import './scss/styles.scss';
 
 import { Api } from './components/base/Api';
-import { EventEmitter } from './components/base/Events'; 
 import { WebLarekApi } from './components/api/WebLarekApi';
 import { ProductModel } from './components/models/ProductModel';
 import { BasketModel } from './components/models/BasketModel';
 import { BuyerModel } from './components/models/BuyerModel';
 
 import { apiProducts } from './utils/data';
-import { API_URL } from './utils/constants';  
-
-// ========== СОЗДАЁМ БРОКЕР СОБЫТИЙ ==========
-const events = new EventEmitter();
+import { API_URL } from './utils/constants';
 
 // ========== НАСТРАИВАЕМ API ==========
 const apiInstance = new Api(API_URL);
 const webLarekApi = new WebLarekApi(apiInstance);
 
-// ========== СОЗДАЁМ МОДЕЛИ С ПЕРЕДАЧЕЙ EVENTS ==========
-const productModel = new ProductModel(events);
-const basketModel = new BasketModel(events);
-const buyerModel = new BuyerModel(events);
+// ========== СОЗДАЁМ МОДЕЛИ ==========
+const productModel = new ProductModel();
+const basketModel = new BasketModel();
+const buyerModel = new BuyerModel();
 
 console.log('========== ТЕСТИРОВАНИЕ МОДЕЛЕЙ ==========');
 
-// 1. Тестирование ProductModel
+// ========== 1. Тестирование ProductModel ==========
 console.log('\n--- 1. Каталог на главной ---');
 productModel.setItems(apiProducts.items);
 console.log('Сохранен массив товаров');
@@ -39,7 +35,7 @@ if (allProducts[0]) {
 
 console.log(`Получена выбранная карточка: ${productModel.getSelectedItem()?.title}`);
 
-// 2. Тестирование BasketModel
+// ========== 2. Тестирование BasketModel ==========
 console.log('\n--- 2. Корзина с товарами ---');
 const productsToAdd = allProducts.slice(0, 2);
 productsToAdd.forEach((product, index) => {
@@ -57,49 +53,63 @@ if (productsToAdd[0]) {
     console.log(`Осталось товаров: ${basketModel.getCount()}`);
 }
 
-// 3. Тестирование BuyerModel
+// ========== 3. Тестирование BuyerModel ==========
 console.log('\n--- 3. Покупатель ---');
+
+// 3.1 Валидация с пустыми данными
+console.log('\n--- 3.1 Валидация с пустыми данными ---');
+const emptyErrors = buyerModel.validate();
+console.log('Ошибки при пустых данных:', emptyErrors);
+console.log(`Количество ошибок: ${Object.keys(emptyErrors).length}`);
+console.log(`Все поля невалидны: ${Object.keys(emptyErrors).length === 4}`);
+
+// 3.2 Валидация с частично заполненными данными
+console.log('\n--- 3.2 Валидация с частично заполненными данными ---');
 buyerModel.setField('payment', 'card');
 buyerModel.setField('address', 'Москва, ул. Ленина, д. 1');
+
+const partialErrors = buyerModel.validate();
+console.log('Ошибки при частичном заполнении:', partialErrors);
+console.log(`Заполнены и валидны: payment, address`);
+console.log(`Ошибка для email: ${partialErrors.email || 'нет ошибки'}`);
+console.log(`Ошибка для phone: ${partialErrors.phone || 'нет ошибки'}`);
+console.log(`Поле payment валидно: ${!partialErrors.payment}`);
+console.log(`Поле address валидно: ${!partialErrors.address}`);
+console.log(`Поле email невалидно: ${!!partialErrors.email}`);
+console.log(`Поле phone невалидно: ${!!partialErrors.phone}`);
+
+// 3.3 Валидация с полностью заполненными данными
+console.log('\n--- 3.3 Валидация с полностью заполненными данными ---');
 buyerModel.setField('email', 'test@example.com');
 buyerModel.setField('phone', '+7 999 123-45-67');
-console.log('Сохранены данные покупателя');
 
-console.log('Получены данные:', buyerModel.getData());
+const fullErrors = buyerModel.validate();
+console.log('Ошибки при полном заполнении:', fullErrors);
+console.log(`Все поля валидны: ${Object.keys(fullErrors).length === 0}`);
 
-const errors = buyerModel.validate();
-if (Object.keys(errors).length === 0) {
-    console.log('Данные валидны');
-} else {
-    console.log('Ошибки:', errors);
-}
+// 3.4 Получение всех данных
+console.log('\n--- 3.4 Получение данных ---');
+console.log('Получены данные:', buyerModel.getData()); 
 
-console.log(`Все данные валидны: ${buyerModel.isValid()}`);
+// 3.5 Очистка данных
+console.log('\n--- 3.5 Очистка данных ---');
+buyerModel.clear();
+console.log('Данные очищены');
+console.log('Текущие данные:', buyerModel.getData());  
 
-// 4. Проверка оформления
+const data = buyerModel.getData();
+console.log(`Все поля пусты: ${!data.payment && !data.address && !data.email && !data.phone}`);
+
+// ========== 4. Проверка оформления ==========
 console.log('\n--- 4. Проверка оформления заказа ---');
 basketModel.addItem(allProducts[0]);
 basketModel.addItem(allProducts[1]);
 console.log(`В корзине: ${basketModel.getCount()} товаров`);
-console.log(`Можно оформить: ${basketModel.canCheckout()}`);
-console.log(`ID товаров: ${basketModel.getItemIds().join(', ')}`);
+console.log(`Можно оформить: ${basketModel.getCount() > 0 && basketModel.getTotal() > 0}`);
+const itemIds = basketModel.getItems().map(item => item.id);
+console.log(`ID товаров: ${itemIds.join(', ')}`);
 
-// ========== ПОДПИСКА НА СОБЫТИЯ ДЛЯ ДЕМОНСТРАЦИИ ==========
-console.log('\n--- Демонстрация событий ---');
-
-events.on('catalog:setProducts', (data) => {
-    console.log('Событие: catalog:setProducts', data);
-});
-
-events.on('basket:change', (data) => {
-    console.log('Событие: basket:change', data);
-});
-
-events.on('buyer:changeEmail', (data) => {
-    console.log('Событие: buyer:changeEmail', data);
-});
-
-// 5. Работа с сервером
+// ========== 5. Работа с сервером ==========
 console.log('\n========== РАБОТА С СЕРВЕРОМ ==========');
 
 webLarekApi.getProducts()
