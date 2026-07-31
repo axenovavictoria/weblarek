@@ -181,3 +181,184 @@ Presenter - презентер содержит основную логику п
 **Методы:**
 - `getProducts(): Promise<IApiProductResponse>` — получает список товаров
 - `postOrder(orderData: IOrderData): Promise<IOrderResponse>` — отправляет заказ
+
+# Спринт 9
+## Слой Представления (View)
+
+### Родительский класс Component (уже есть в базовом коде)
+Базовый класс для всех компонентов интерфейса. Содержит методы для работы с DOM.
+
+### Класс Modal
+**Назначение:** управление модальным окном (открытие/закрытие)
+
+**Поля:**
+- `_content: HTMLElement | null` — содержимое модального окна
+
+**Методы:**
+- `open(): void` — открывает модальное окно
+- `close(): void` — закрывает модальное окно
+- `set content(value: HTMLElement)` — устанавливает содержимое
+
+**События:**
+- `modal:open` — при открытии модального окна
+- `modal:close` — при закрытии модального окна
+
+---
+
+### Родительский класс Card (абстрактный)
+**Назначение:** базовый класс для всех карточек товара
+
+**Поля:**
+- `_title: string` — название товара
+- `_price: number | null` — цена товара
+- `_category: string` — категория товара
+- `_image: string` — изображение товара
+- `_buttonText: string` — текст на кнопке
+- `_buttonDisabled: boolean` — доступность кнопки
+
+**Методы:**
+- `set title(value: string)` — устанавливает название
+- `set price(value: number | null)` — устанавливает цену
+- `set category(value: string)` — устанавливает категорию
+- `set image(value: string)` — устанавливает изображение
+- `set buttonText(value: string)` — устанавливает текст кнопки
+- `set buttonDisabled(value: boolean)` — блокирует/разблокирует кнопку
+
+---
+
+### Класс CardCatalog (наследует Card)
+**Назначение:** карточка товара в каталоге
+
+**Конструктор:** принимает `container: HTMLElement` и `actions?: { onClick: (event: MouseEvent) => void }`
+
+**События:**
+- `product:select` — при клике на карточку
+
+---
+
+### Класс CardPreview (наследует Card)
+**Назначение:** карточка товара в модальном окне (детальный просмотр)
+
+**Поля:**
+- `_description: string` — описание товара
+
+**Методы:**
+- `set description(value: string)` — устанавливает описание
+
+**Конструктор:** принимает `container: HTMLElement` и `actions?: { onAdd: (event: MouseEvent) => void }`
+
+**События:**
+- `product:add` — при нажатии кнопки "Купить"
+- `product:remove` — при нажатии кнопки "Удалить из корзины"
+
+---
+
+### Класс CardBasket (наследует Card)
+**Назначение:** карточка товара в корзине
+
+**Поля:**
+- `_index: number` — порядковый номер
+
+**Методы:**
+- `set index(value: number)` — устанавливает порядковый номер
+
+**Конструктор:** принимает `container: HTMLElement` и `actions?: { onDelete: (event: MouseEvent) => void }`
+
+**События:**
+- `product:delete` — при нажатии кнопки удаления
+
+---
+
+### Класс Basket
+**Назначение:** отображение корзины
+
+**Поля:**
+- `_items: HTMLElement[]` — массив DOM-элементов товаров
+- `_total: number` — общая стоимость
+
+**Методы:**
+- `set items(items: HTMLElement[])` — обновляет список товаров
+- `set total(value: number)` — обновляет общую стоимость
+- `set checkoutDisabled(value: boolean)` — блокирует/разблокирует кнопку "Оформить"
+
+**События:**
+- `basket:open` — при нажатии на кнопку корзины в шапке
+- `basket:checkout` — при нажатии кнопки "Оформить"
+
+---
+
+### Родительский класс Form (абстрактный)
+**Назначение:** базовый класс для всех форм
+
+**Поля:**
+- `_errors: string` — текст ошибок
+
+**Методы:**
+- `set errors(value: string)` — устанавливает текст ошибок
+- `set submitDisabled(value: boolean)` — блокирует/разблокирует кнопку отправки
+
+---
+
+### Класс OrderForm (наследует Form)
+**Назначение:** форма первого шага оформления (способ оплаты + адрес)
+
+**Поля:**
+- `_payment: string` — выбранный способ оплаты
+- `_address: string` — адрес доставки
+
+**Методы:**
+- `set payment(value: string)` — устанавливает способ оплаты
+- `set address(value: string)` — устанавливает адрес
+
+**События:**
+- `order:submit` — при нажатии кнопки "Далее"
+- `order:paymentChange` — при выборе способа оплаты
+- `order:addressChange` — при вводе адреса
+
+---
+
+### Класс ContactsForm (наследует Form)
+**Назначение:** форма второго шага оформления (email + телефон)
+
+**Поля:**
+- `_email: string` — email
+- `_phone: string` — телефон
+
+**Методы:**
+- `set email(value: string)` — устанавливает email
+- `set phone(value: string)` — устанавливает телефон
+
+**События:**
+- `contacts:submit` — при нажатии кнопки "Оплатить"
+- `contacts:emailChange` — при вводе email
+- `contacts:phoneChange` — при вводе телефона
+
+---
+
+### Класс Success
+**Назначение:** отображение успешного оформления заказа
+
+**Поля:**
+- `_total: number` — списанная сумма
+
+**Методы:**
+- `set total(value: number)` — устанавливает сумму
+
+**События:**
+- `success:close` — при нажатии кнопки "За новыми покупками!"
+
+---
+
+### Класс Page
+**Назначение:** управление страницей (каталог + счётчик корзины)
+
+**Поля:**
+- `_counter: number` — количество товаров в корзине
+- `_catalog: HTMLElement[]` — массив карточек товаров
+
+**Методы:**
+- `set counter(value: number)` — обновляет счётчик корзины
+- `set catalog(items: HTMLElement[])` — обновляет каталог
+
+**События:**
+- `basket:open` — при нажатии на иконку корзины
