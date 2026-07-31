@@ -29,4 +29,11 @@ export class OrderForm extends Form<{ payment: string; address: string }> {
     set address(value: string) {
         this.addressInput.value = value;
     }
+
+    render(data?: Partial<{ payment: string; address: string }>): HTMLElement {
+        if (data) {
+            if (data.address !== undefined) this.address = data.address;
+        }
+        return this.container;
+    }
 }

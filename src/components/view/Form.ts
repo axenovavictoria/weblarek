@@ -28,4 +28,11 @@ export abstract class Form<T> extends Component<T> {
     protected onInputChange(field: keyof T, value: string) {
         this.events.emit(`${this.constructor.name.toLowerCase()}:${String(field)}Change`, { field, value });
     }
+
+    render(data?: Partial<T>): HTMLElement {
+        if (data) {
+            Object.assign(this, data);
+        }
+        return this.container;
+    }
 }

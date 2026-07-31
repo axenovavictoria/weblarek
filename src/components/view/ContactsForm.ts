@@ -18,7 +18,6 @@ export class ContactsForm extends Form<{ email: string; phone: string }> {
             this.events.emit('contacts:phoneChange', { phone: this.phoneInput.value });
         });
 
-        // Добавляем обработчик на кнопку "Оплатить"
         this.submitButton.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('ContactsForm: кнопка "Оплатить" нажата');
@@ -32,5 +31,13 @@ export class ContactsForm extends Form<{ email: string; phone: string }> {
 
     set phone(value: string) {
         this.phoneInput.value = value;
+    }
+
+    render(data?: Partial<{ email: string; phone: string }>): HTMLElement {
+        if (data) {
+            if (data.email !== undefined) this.email = data.email;
+            if (data.phone !== undefined) this.phone = data.phone;
+        }
+        return this.container;
     }
 }

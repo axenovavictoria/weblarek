@@ -217,7 +217,9 @@ events.on('order:addressChange', (data: { address: string }) => {
 });
 
 events.on('order:submit', () => {
+    console.log('=== order:submit START ===');
     const buyerData = buyerModel.getData();
+    console.log('buyerData:', buyerData);
     
     if (!buyerData.payment) {
         orderForm.errors = 'Выберите способ оплаты';
@@ -229,12 +231,15 @@ events.on('order:submit', () => {
         return;
     }
     
+    console.log('Opening contacts form');
     contactsForm.email = '';
     contactsForm.phone = '';
     contactsForm.errors = '';
     contactsForm.submitDisabled = true;
+    
     modal.content = contactsForm.render();
     modal.open();
+    console.log('=== order:submit DONE ===');
 });
 
 // --- Обработка формы контактов (второй шаг) ---
@@ -254,7 +259,9 @@ events.on('contacts:phoneChange', (data: { phone: string }) => {
 
 // --- Отправка заказа ---
 events.on('contacts:submit', () => {
+    console.log('=== contacts:submit START ===');
     const buyerData = buyerModel.getData();
+    console.log('buyerData:', buyerData);
     
     if (!buyerData.payment) {
         contactsForm.errors = 'Выберите способ оплаты';
@@ -275,9 +282,11 @@ events.on('contacts:submit', () => {
         total: basketModel.getTotal(),
         items: basketModel.getItems().map(item => item.id)
     };
+    console.log('orderData:', orderData);
 
     api.postOrder(orderData)
         .then(response => {
+            console.log('Order successful:', response);
             successView.total = response.total;
             modal.content = successView.render();
             modal.open();

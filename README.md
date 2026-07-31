@@ -362,3 +362,42 @@ Presenter - презентер содержит основную логику п
 
 **События:**
 - `basket:open` — при нажатии на иконку корзины
+
+## События
+
+### Модели данных
+- `catalog:changed` — изменение каталога товаров
+- `catalog:selected` — изменение выбранного товара
+- `basket:changed` — изменение содержимого корзины
+- `basket:cleared` — очистка корзины
+- `buyer:changed` — изменение данных покупателя
+- `buyer:cleared` — очистка данных покупателя
+
+### Представления
+- `product:select` — выбор карточки для просмотра
+- `basket:open` — открытие корзины
+- `basket:checkout` — оформление заказа
+- `order:paymentChange` — выбор способа оплаты
+- `order:addressChange` — ввод адреса
+- `order:submit` — переход ко второй форме
+- `contacts:emailChange` — ввод email
+- `contacts:phoneChange` — ввод телефона
+- `contacts:submit` — отправка заказа
+- `success:close` — закрытие успешного оформления
+- `modal:close` — закрытие модального окна
+
+## Презентер
+
+Презентер реализован в файле `src/main.ts`. Он содержит обработчики всех событий приложения и связывает модели данных с компонентами представления.
+
+### Основные обработчики
+1. `catalog:changed` — отображение каталога товаров
+2. `product:select` — выбор товара для просмотра
+3. `catalog:selected` — открытие модального окна с товаром
+4. `basket:changed` — обновление корзины и счётчика
+5. `basket:open` — открытие корзины
+6. `basket:checkout` — открытие формы заказа
+7. `order:paymentChange` / `order:addressChange` — валидация формы
+8. `order:submit` — переход ко второй форме
+9. `contacts:emailChange` / `contacts:phoneChange` — валидация формы
+10. `contacts:submit` — отправка заказа на сервер
