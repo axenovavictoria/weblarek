@@ -9,7 +9,7 @@ export class ProductModel implements IProductModel {
 
     setItems(items: IProduct[]): void {
         this._items = items;
-        this.events.emit('catalog:changed', { items: this._items });
+        this.events.emit('catalog:changed');
     }
 
     getItems(): IProduct[] {
@@ -22,7 +22,7 @@ export class ProductModel implements IProductModel {
 
     setSelectedItem(item: IProduct): void {
         this._selectedItem = item;
-        this.events.emit('catalog:selected', { item: this._selectedItem });
+        this.events.emit('catalog:selected');
     }
 
     getSelectedItem(): IProduct | null {

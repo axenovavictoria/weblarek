@@ -123,8 +123,10 @@ events.on('product:select', (product: IProduct) => {
 });
 
 // --- Отображение выбранного товара ---
-events.on('catalog:selected', (data: { item: IProduct }) => {
-    const product = data.item;
+events.on('catalog:selected', () => {
+    const product = productModel.getSelectedItem();
+    if (!product) return;
+    
     const cardElement = cloneTemplate<HTMLElement>(cardPreviewTemplate);
     const card = new CardPreview(cardElement, {
         onButtonClick: () => {
@@ -187,90 +189,101 @@ events.on('basket:open', () => {
 
 // --- Оформление заказа (первый шаг) ---
 events.on('basket:checkout', () => {
-    buyerModel.setField('payment', '' as TPayment | '');
-    buyerModel.setField('address', '');
-    
-    orderForm.address = '';
-    orderForm.errors = '';
-    orderForm.submitDisabled = true;
-    
-    const buttons = orderFormContainer.querySelectorAll('.button_alt');
-    buttons.forEach(btn => btn.classList.remove('button_alt-active'));
-    
     modal.content = orderForm.render();
     modal.open();
 });
 
 // --- Обработка формы заказа (первый шаг) ---
 events.on('order:paymentChange', (data: { payment: string }) => {
+    console.log('=== order:paymentChange ===', data.payment);
     buyerModel.setField('payment', data.payment as TPayment);
-    const errors = buyerModel.validate(['payment', 'address']);
-    orderForm.errors = errors.payment || errors.address || '';
-    orderForm.submitDisabled = Object.keys(errors).length > 0;
 });
 
 events.on('order:addressChange', (data: { address: string }) => {
+    console.log('=== order:addressChange ===', data.address);
     buyerModel.setField('address', data.address);
-    const errors = buyerModel.validate(['payment', 'address']);
-    orderForm.errors = errors.payment || errors.address || '';
-    orderForm.submitDisabled = Object.keys(errors).length > 0;
 });
 
 events.on('order:submit', () => {
-    console.log('=== order:submit START ===');
-    const buyerData = buyerModel.getData();
-    console.log('buyerData:', buyerData);
+    console.log('order:submit ВЫЗВАН');
     
-    if (!buyerData.payment) {
-        orderForm.errors = 'Выберите способ оплаты';
+    const errors = buyerModel.validate(['payment', 'address']);
+    console.log('errors:', errors);
+    
+    if (Object.keys(errors).length > 0) {
+        orderForm.errors = Object.values(errors).join('. ');
         return;
     }
     
-    if (!buyerData.address) {
-        orderForm.errors = 'Укажите адрес доставки';
-        return;
-    }
-    
-    console.log('Opening contacts form');
-    contactsForm.email = '';
-    contactsForm.phone = '';
-    contactsForm.errors = '';
-    contactsForm.submitDisabled = true;
-    
+    console.log('Открываем форму контактов');
     modal.content = contactsForm.render();
     modal.open();
-    console.log('=== order:submit DONE ===');
+});
+
+// --- Обработка изменения данных покупателя ---
+events.on('buyer:changed', () => {
+    const buyerData = buyerModel.getData();
+    
+    // 1. Обновляем первую форму (OrderForm)
+    orderForm.payment = buyerData.payment;
+    orderForm.address = buyerData.address;
+    
+    // 2. Обновляем вторую форму (ContactsForm)
+    contactsForm.email = buyerData.email;
+    contactsForm.phone = buyerData.phone;
+    
+    // 3. Валидация для первой формы
+    const errorsOrder = buyerModel.validate(['payment', 'address']);
+    let errorsOrderText = '';
+    if (errorsOrder.payment && errorsOrder.address) {
+        errorsOrderText = `${errorsOrder.address}; ${errorsOrder.payment}`;
+    } else if (errorsOrder.address) {
+        errorsOrderText = errorsOrder.address;
+    } else if (errorsOrder.payment) {
+        errorsOrderText = errorsOrder.payment;
+    }
+    orderForm.errors = errorsOrderText;
+    orderForm.submitDisabled = Object.keys(errorsOrder).length > 0;
+    
+    // 4. Валидация для второй формы
+    const errorsContacts = buyerModel.validate(['email', 'phone']);
+    let errorsContactsText = '';
+    if (errorsContacts.email && errorsContacts.phone) {
+        errorsContactsText = `${errorsContacts.email}; ${errorsContacts.phone}`;
+    } else if (errorsContacts.email) {
+        errorsContactsText = errorsContacts.email;
+    } else if (errorsContacts.phone) {
+        errorsContactsText = errorsContacts.phone;
+    }
+    contactsForm.errors = errorsContactsText;
+    contactsForm.submitDisabled = Object.keys(errorsContacts).length > 0;
+    
+    // 5. Перерендер обеих форм
+    orderForm.render({ 
+        payment: buyerData.payment, 
+        address: buyerData.address 
+    });
+    contactsForm.render({ 
+        email: buyerData.email, 
+        phone: buyerData.phone 
+    });
 });
 
 // --- Обработка формы контактов (второй шаг) ---
 events.on('contacts:emailChange', (data: { email: string }) => {
     buyerModel.setField('email', data.email);
-    const errors = buyerModel.validate(['email', 'phone']);
-    contactsForm.errors = errors.email || errors.phone || '';
-    contactsForm.submitDisabled = Object.keys(errors).length > 0;
 });
 
 events.on('contacts:phoneChange', (data: { phone: string }) => {
     buyerModel.setField('phone', data.phone);
-    const errors = buyerModel.validate(['email', 'phone']);
-    contactsForm.errors = errors.email || errors.phone || '';
-    contactsForm.submitDisabled = Object.keys(errors).length > 0;
 });
 
 // --- Отправка заказа ---
 events.on('contacts:submit', () => {
-    console.log('=== contacts:submit START ===');
     const buyerData = buyerModel.getData();
-    console.log('buyerData:', buyerData);
     
     if (!buyerData.payment) {
         contactsForm.errors = 'Выберите способ оплаты';
-        return;
-    }
-
-    const errors = buyerModel.validate(['payment', 'email', 'phone', 'address']);
-    if (Object.keys(errors).length > 0) {
-        contactsForm.errors = Object.values(errors).join('. ');
         return;
     }
 
@@ -282,11 +295,9 @@ events.on('contacts:submit', () => {
         total: basketModel.getTotal(),
         items: basketModel.getItems().map(item => item.id)
     };
-    console.log('orderData:', orderData);
 
     api.postOrder(orderData)
         .then(response => {
-            console.log('Order successful:', response);
             successView.total = response.total;
             modal.content = successView.render();
             modal.open();

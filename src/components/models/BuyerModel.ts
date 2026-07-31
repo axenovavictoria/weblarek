@@ -9,7 +9,6 @@ export class BuyerModel implements IBuyerModel {
 
     constructor(protected events: IEvents) {}
 
-    // метод получения данных
     getData(): IBuyer {
         return {
             payment: this._payment,
@@ -23,21 +22,18 @@ export class BuyerModel implements IBuyerModel {
         switch (field) {
             case 'payment':
                 this._payment = value as TPayment | '';
-                this.events.emit('buyer:changed', { field: 'payment', value: this._payment });
                 break;
             case 'address':
                 this._address = value as string;
-                this.events.emit('buyer:changed', { field: 'address', value: this._address });
                 break;
             case 'email':
                 this._email = value as string;
-                this.events.emit('buyer:changed', { field: 'email', value: this._email });
                 break;
             case 'phone':
                 this._phone = value as string;
-                this.events.emit('buyer:changed', { field: 'phone', value: this._phone });
                 break;
         }
+        this.events.emit('buyer:changed');
     }
 
     clear(): void {
@@ -45,7 +41,7 @@ export class BuyerModel implements IBuyerModel {
         this._address = '';
         this._email = '';
         this._phone = '';
-        this.events.emit('buyer:cleared');
+        this.events.emit('buyer:changed');
     }
 
     validate(fields?: Array<keyof IBuyer>): TValidationErrors {
