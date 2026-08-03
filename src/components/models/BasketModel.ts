@@ -13,7 +13,7 @@ export class BasketModel implements IBasketModel {
         if (item.price === null) return; 
         if (!this.contains(item.id)) {
             this._items.push(item);
-            this.events.emit('basket:changed', { items: this._items });
+            this.events.emit('basket:changed');
         }
     }
 
@@ -22,7 +22,7 @@ export class BasketModel implements IBasketModel {
      */
     removeItem(id: string): void {
         this._items = this._items.filter(item => item.id !== id);
-        this.events.emit('basket:changed', { items: this._items });
+        this.events.emit('basket:changed');
     }
 
     /**
@@ -30,7 +30,7 @@ export class BasketModel implements IBasketModel {
      */
     clear(): void {
         this._items = [];
-        this.events.emit('basket:changed', { items: this._items });
+        this.events.emit('basket:changed');
     }
 
     /**

@@ -206,16 +206,6 @@ events.on('order:addressChange', (data: { address: string }) => {
 
 events.on('order:submit', () => {
     console.log('order:submit ВЫЗВАН');
-    
-    const errors = buyerModel.validate(['payment', 'address']);
-    console.log('errors:', errors);
-    
-    if (Object.keys(errors).length > 0) {
-        orderForm.errors = Object.values(errors).join('. ');
-        return;
-    }
-    
-    console.log('Открываем форму контактов');
     modal.content = contactsForm.render();
     modal.open();
 });
@@ -224,15 +214,7 @@ events.on('order:submit', () => {
 events.on('buyer:changed', () => {
     const buyerData = buyerModel.getData();
     
-    // 1. Обновляем первую форму (OrderForm)
-    orderForm.payment = buyerData.payment;
-    orderForm.address = buyerData.address;
-    
-    // 2. Обновляем вторую форму (ContactsForm)
-    contactsForm.email = buyerData.email;
-    contactsForm.phone = buyerData.phone;
-    
-    // 3. Валидация для первой формы
+    // Валидация для первой формы
     const errorsOrder = buyerModel.validate(['payment', 'address']);
     let errorsOrderText = '';
     if (errorsOrder.payment && errorsOrder.address) {
@@ -245,7 +227,7 @@ events.on('buyer:changed', () => {
     orderForm.errors = errorsOrderText;
     orderForm.submitDisabled = Object.keys(errorsOrder).length > 0;
     
-    // 4. Валидация для второй формы
+    // Валидация для второй формы
     const errorsContacts = buyerModel.validate(['email', 'phone']);
     let errorsContactsText = '';
     if (errorsContacts.email && errorsContacts.phone) {
@@ -258,7 +240,7 @@ events.on('buyer:changed', () => {
     contactsForm.errors = errorsContactsText;
     contactsForm.submitDisabled = Object.keys(errorsContacts).length > 0;
     
-    // 5. Перерендер обеих форм
+    // Перерендер обеих форм
     orderForm.render({ 
         payment: buyerData.payment, 
         address: buyerData.address 
@@ -281,11 +263,6 @@ events.on('contacts:phoneChange', (data: { phone: string }) => {
 // --- Отправка заказа ---
 events.on('contacts:submit', () => {
     const buyerData = buyerModel.getData();
-    
-    if (!buyerData.payment) {
-        contactsForm.errors = 'Выберите способ оплаты';
-        return;
-    }
 
     const orderData: IOrderData = {
         payment: buyerData.payment as TPayment,
